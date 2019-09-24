@@ -6,6 +6,8 @@ import org.springframework.data.repository.query.Param;
 import ru.skilup.crowd.domain.Employee;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public interface EmployeeRepo extends JpaRepository<Employee, Long> {
     @Query("from Employee e " +
@@ -13,4 +15,5 @@ public interface EmployeeRepo extends JpaRepository<Employee, Long> {
             "like concat('%',:name,'%')")
     List<Employee> findByName(@Param("name") String name);
 
+    Optional<Employee> findById(UUID id);
 }

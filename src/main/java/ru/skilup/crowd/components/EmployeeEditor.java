@@ -3,7 +3,6 @@ package ru.skilup.crowd.components;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyNotifier;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -19,20 +18,21 @@ import ru.skilup.crowd.repo.EmployeeRepo;
 @UIScope
 public class EmployeeEditor extends VerticalLayout implements KeyNotifier {
     private final EmployeeRepo employeeRepo;
+
     private Employee employee;
 
-    private TextField firstName = new TextField("First name");
-    private TextField lastName = new TextField("Last name");
-    private TextField patronymic = new TextField("Patronymic");
+    private TextField firstName = new TextField("", "First name");
+    private TextField lastName = new TextField("", "Last name");
+    private TextField patronymic = new TextField("", "Patronymic");
 
-    private Button save = new Button("Save", VaadinIcon.CHECK.create());
+    private Button save = new Button("Save");
     private Button cancel = new Button("Cancel");
-    private Button delete = new Button("Delete", VaadinIcon.TRASH.create());
-    private HorizontalLayout actions = new HorizontalLayout(save, cancel, delete);
-    @Setter
-    private ChangeHandler changeHandler;
+    private Button delete = new Button("Delete");
+    private HorizontalLayout buttons = new HorizontalLayout(save, cancel, delete);
 
     private Binder<Employee> binder = new Binder<>(Employee.class);
+    @Setter
+    private ChangeHandler changeHandler;
 
     public interface ChangeHandler {
         void onChange();
@@ -41,7 +41,7 @@ public class EmployeeEditor extends VerticalLayout implements KeyNotifier {
     @Autowired
     public EmployeeEditor(EmployeeRepo employeeRepo) {
         this.employeeRepo = employeeRepo;
-        add(lastName, firstName, patronymic, actions);
+        add(lastName, firstName, patronymic, buttons);
         binder.bindInstanceFields(this);
 
         setSpacing(true);
@@ -51,16 +51,10 @@ public class EmployeeEditor extends VerticalLayout implements KeyNotifier {
 
         addKeyPressListener(Key.ENTER, e -> save());
 
-        // wire action buttons to save, delete and reset
         save.addClickListener(e -> save());
         delete.addClickListener(e -> delete());
         cancel.addClickListener(e -> editEmployee(employee));
         setVisible(false);
-    }
-
-    private void delete() {
-        employeeRepo.delete(employee);
-        changeHandler.onChange();
     }
 
     private void save() {
@@ -68,21 +62,25 @@ public class EmployeeEditor extends VerticalLayout implements KeyNotifier {
         changeHandler.onChange();
     }
 
-    public void editEmployee(Employee newEmp) {
-        if (newEmp == null) {
+    private void delete() {
+        employeeRepo.delete(employee);
+        changeHandler.onChange();
+    }
+
+    public void editEmployee(Employee emp) {
+        if (emp == null) {
             setVisible(false);
             return;
         }
 
-        if (newEmp.getId() != null) {
-            employee = employeeRepo.findById(newEmp.getId()).orElse(newEmp);
+        if (emp.getId() != null) {
+            this.employee = employeeRepo.findById(emp.getId()).orElse(emp);
         } else {
-            employee = newEmp;
+            this.employee = emp;
         }
 
-        binder.setBean(employee);
+        binder.setBean(this.employee);
         setVisible(true);
         lastName.focus();
-
     }
 }
